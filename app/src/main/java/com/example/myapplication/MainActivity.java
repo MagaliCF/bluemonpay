@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtViewLogout;
     private AdapterCatalog adapter;
 
-    private ArrayList<ProductsItem> catalog = new ArrayList<>();
     private TextView txtViewCatalog;
     private TextView txtViewEmpty;
 
@@ -64,7 +63,32 @@ public class MainActivity extends AppCompatActivity {
 
         if(horario()){
             token = Utils.getToken(this,"authCredentials");
-            getCatalog();
+            adapter = new AdapterCatalog(this);
+            recyclerView.setAdapter(adapter);
+            LinearLayoutManager manager = new LinearLayoutManager(getApplicationContext());
+            recyclerView.setLayoutManager(manager);
+
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    if (dy > 0){
+
+                        if(aptoParaCargar){
+                                Log.i(TAG, "onScrolled: llegamos al final de la lista");
+
+                                aptoParaCargar = false;
+                                offset += 5;
+                                getCatalog(offset);
+                        }
+                    }
+                }
+            });
+
+            aptoParaCargar = true;
+            offset = 0;
+            getCatalog(offset);
+
         } else {
             logout();
         }
@@ -87,11 +111,7 @@ public class MainActivity extends AppCompatActivity {
         float mHorario2 = Float.parseFloat(concatenacion);
         float res = mHorario1 - mHorario2;
 
-        if (res <= -1){
-            return false;
-        } else {
-            return true;
-        }
+        return !(res <= -1);
     }
 
     private void logout() {
@@ -102,20 +122,26 @@ public class MainActivity extends AppCompatActivity {
         Utils.setHora(getApplicationContext(), "authHour", 0);
     }
 
-    private void getCatalog(){
+    private void getCatalog(int offset){
         ApiService service = retrofit.create(ApiService.class);
-        Call<CatalogResponse> catalogResponseCall = service.getCatalog("Bearer " + token);
+        Call<CatalogResponse> catalogResponseCall = service.getCatalog("Bearer " + token, 0, offset);
 
         catalogResponseCall.enqueue(new Callback<CatalogResponse>() {
             @Override
             public void onResponse(Call<CatalogResponse> call, Response<CatalogResponse> response) {
+                aptoParaCargar = true;
                 if(response.isSuccessful()){
                     CatalogResponse catalogResponse = response.body();
-                    LinearLayoutManager manager = new LinearLayoutManager(getApplicationContext());
-                    recyclerView.setLayoutManager(manager);
-                    catalog = (ArrayList<ProductsItem>) catalogResponse.getProducts();
-                    adapter = new AdapterCatalog(catalog, getApplicationContext());
-                    recyclerView.setAdapter(adapter);
+                    ArrayList<ProductsItem> mCatalog = (ArrayList<ProductsItem>)catalogResponse.getProducts();
+                    initViews(mCatalog);
+                    adapter.addItem(mCatalog);
+                    adapter.notifyDataSetChanged(); // Notifica al adaptador sobre los cambios
+
+                    for (ProductsItem item:
+                         mCatalog) {
+                        Log.i(TAG, "onResponse item: " + item);
+                    }
+
                 } else {
                     Log.e(TAG, "onResponse error: " + response.message() );
                     Toast.makeText(getApplicationContext(), "Oh no! Something wrong", Toast.LENGTH_SHORT).show();
@@ -125,12 +151,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<CatalogResponse> call, Throwable t) {
+                aptoParaCargar = true;
                 Log.e(TAG, "onFailure getting catalog response: " + t.getMessage() );
             }
         });
     }
 
-    private void initViews(){
+    private void initViews(ArrayList<ProductsItem> catalog){
         if(catalog.isEmpty()){
             txtViewEmpty.setVisibility(View.VISIBLE);
             txtViewCatalog.setVisibility(View.GONE);

@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 public class ProductsItem{
 
 	@SerializedName("discountPercentage")
-	private Object discountPercentage;
+	private float discountPercentage;
 
 	@SerializedName("thumbnail")
 	private String thumbnail;
@@ -38,7 +38,7 @@ public class ProductsItem{
 	@SerializedName("brand")
 	private String brand;
 
-	public Object getDiscountPercentage(){
+	public float getDiscountPercentage(){
 		return discountPercentage;
 	}
 

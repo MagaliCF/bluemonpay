@@ -9,6 +9,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public interface ApiService {
     //POST Login
@@ -17,6 +18,6 @@ public interface ApiService {
 
     //GET catalog
     @GET("auth/products")
-    Call<CatalogResponse> getCatalog(@Header("Authorization") String authToken);
+    Call<CatalogResponse> getCatalog(@Header("Authorization") String authToken, @Query("limit") int limit, @Query("offset") int offset );
 
 }
