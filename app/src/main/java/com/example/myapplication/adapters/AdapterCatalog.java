@@ -1,6 +1,7 @@
 package com.example.myapplication.adapters;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,17 +11,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
-import com.example.myapplication.models.ItemCatalog;
+import com.example.myapplication.models.ProductsItem;
 
 import java.util.ArrayList;
 
 public class AdapterCatalog extends RecyclerView.Adapter<AdapterCatalog.ViewHolderCatalog> {
 
-    ArrayList<ItemCatalog> catalog;
+    ArrayList<ProductsItem> catalog;
+    Context context;
 
-    public  AdapterCatalog(ArrayList<ItemCatalog> catalog){
+    public  AdapterCatalog(ArrayList<ProductsItem> catalog, Context context){
         this.catalog = catalog;
+        this.context = context;
     }
 
     @NonNull
@@ -33,13 +37,16 @@ public class AdapterCatalog extends RecyclerView.Adapter<AdapterCatalog.ViewHold
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull AdapterCatalog.ViewHolderCatalog holder, int position) {
-        ItemCatalog item = catalog.get(position);
+        ProductsItem item = catalog.get(position);
 
-        holder.imgViewProduct.setImageResource(item.getSourceImg());
-        holder.txtViewName.setText(item.getName());
+        //holder.imgViewProduct.setImageResource(item.getSourceImg());
+        Glide.with(context)
+                .load(item.getThumbnail())
+                .into(holder.imgViewProduct);
+        holder.txtViewName.setText(item.getTitle());
         holder.txtViewDescription.setText(item.getDescription());
         holder.txtViewCost.setText(Double.toString(item.getPrice()));
-        holder.txtViewBrand.setText(item.getName());
+        holder.txtViewBrand.setText(item.getBrand());
 
     }
 

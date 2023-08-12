@@ -2,7 +2,7 @@ package com.example.myapplication.models;
 
 
 import com.google.gson.annotations.SerializedName;
-public class User {
+public class UserResponse {
 
 	@SerializedName("id")
 	private int id;
